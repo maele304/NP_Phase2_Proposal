@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NP × EDT – Phase 2 Proposal</title>
+<style>
+  :root {
+    --np:#7B1C3E; --npd:#4a0e25; --npl:#9B2A52;
+    --gold:#C8952A; --goldl:#E8B84B; --goldp:#FDF3E0;
+    --acc:#A100FF; --accl:#C84BFF;
+    --dark:#111; --gray:#555; --lgray:#ddd; --white:#fff; --cream:#fafafa;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{font-size:19px;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--np-deep);color:var(--dark);min-height:100vh;}
+  .shell{display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{background:var(--npd);display:flex;flex-direction:column;width:220px;min-width:220px;flex-shrink:0;min-height:100vh;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;}
+  .sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .np-logo{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .np-text{display:flex;flex-direction:column;line-height:1.1;}
+  .np-nestle{font-size:15px;font-weight:900;color:var(--white);letter-spacing:.3px;}
+  .np-pro{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+  .acn-row{display:flex;align-items:center;gap:6px;}
+  .acn-x{font-size:9px;color:rgba(255,255,255,.3);font-weight:700;}
+  .acn-logo{display:flex;align-items:center;gap:5px;background:rgba(161,0,255,.15);border:1px solid rgba(161,0,255,.3);border-radius:6px;padding:4px 9px;}
+  .acn-word{font-size:10px;font-weight:800;color:var(--accl);letter-spacing:.3px;}
+  .sb-nav{padding:12px 0;flex:1;}
+  .sb-section{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:10px 16px 5px;}
+  .sb-item{display:flex;align-items:center;gap:9px;padding:11px 16px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+  .sb-item:hover{background:rgba(255,255,255,.05);}
+  .sb-item.active{background:rgba(200,149,42,.12);border-left-color:var(--gold);}
+  .sb-item-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+  .sb-item-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);line-height:1.3;}
+  .sb-item.active .sb-item-label{color:var(--white);}
+  /* Download button in sidebar */
+  .sb-download{margin:12px 16px 0;background:var(--gold);color:var(--dark);font-size:11px;font-weight:800;padding:10px 14px;border-radius:8px;cursor:pointer;text-align:center;letter-spacing:.5px;transition:all .2s;border:none;width:calc(100% - 32px);}
+  .sb-download:hover{background:var(--goldl);}
+  .sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
+  .sb-footer p{font-size:10px;color:rgba(255,255,255,.18);line-height:1.5;}
+
+  /* MAIN */
+  .main{flex:1;min-width:0;background:var(--white);overflow-y:auto;}
+  .tab-panel{display:none;min-height:100vh;}
+  .tab-panel.active{display:block;}
+
+  /* ── OVERVIEW ── */
+  #tab-overview{background:var(--cream);}
+  .ov-hero{background:linear-gradient(140deg,var(--npd) 0%,var(--np) 45%,#a03060 100%);padding:64px 56px 56px;position:relative;overflow:hidden;}
+  .ov-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px;}
+  .ov-arc{position:absolute;right:-80px;top:-80px;width:400px;height:400px;border-radius:50%;border:2px solid rgba(200,149,42,.2);pointer-events:none;}
+  .ov-arc2{position:absolute;right:-40px;top:-40px;width:280px;height:280px;border-radius:50%;border:1px solid rgba(200,149,42,.12);pointer-events:none;}
+  .deco{position:absolute;font-size:56px;opacity:.07;pointer-events:none;user-select:none;}
+  .deco.d1{bottom:12%;left:3%;}.deco.d2{top:8%;right:22%;}.deco.d3{bottom:5%;right:4%;}
+  .ov-logos{display:flex;align-items:center;gap:14px;margin-bottom:32px;position:relative;z-index:1;}
+  .logo-np-box{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;}
+  .logo-np-nestle{font-size:14px;font-weight:900;color:var(--white);}
+  .logo-np-pro{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6);}
+  .logo-sep{color:rgba(255,255,255,.3);font-size:16px;font-weight:300;}
+  .logo-acn-box{background:rgba(161,0,255,.2);border:1px solid rgba(161,0,255,.4);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:7px;}
+  .logo-acn-word{font-size:14px;font-weight:800;color:var(--accl);}
+  .ov-kicker{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;}
+  .ov-kicker-line{width:24px;height:2px;background:var(--gold);}
+  .ov-hero h1{font-size:clamp(30px,4vw,52px);font-weight:800;color:var(--white);line-height:1.1;margin-bottom:14px;position:relative;z-index:1;}
+  .ov-hero h1 em{color:var(--goldl);font-style:normal;}
+  .ov-hero-sub{font-size:15px;color:rgba(255,255,255,.65);max-width:560px;line-height:1.7;position:relative;z-index:1;margin-bottom:40px;}
+  /* Journey strip */
+  .ov-journey{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px 28px;margin-bottom:36px;position:relative;z-index:1;}
+  .ov-journey-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+  .ov-journey-label::after{content:'';flex:1;height:1px;background:rgba(200,149,42,.3);}
+  .ov-steps{display:flex;align-items:flex-start;gap:0;position:relative;}
+  .ov-steps::before{content:'';position:absolute;top:20px;left:16px;right:16px;height:2px;background:linear-gradient(to right,rgba(255,255,255,.15),var(--gold),rgba(255,255,255,.15));z-index:0;}
+  .ov-step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;}
+  .ov-step-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-bottom:10px;}
+  .ov-step.done .ov-step-dot{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);color:var(--white);}
+  .ov-step.current .ov-step-dot{background:var(--gold);border:2px solid var(--goldl);color:var(--dark);box-shadow:0 0 0 6px rgba(200,149,42,.2);}
+  .ov-step-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.6);line-height:1.3;max-width:90px;}
+  .ov-step.current .ov-step-label{color:var(--goldl);font-weight:700;}
+  .here-tag{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--dark);font-size:8px;font-weight:800;padding:2px 8px;border-radius:6px;white-space:nowrap;}
+  .here-tag::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--gold);}
+  /* What's next */
+  .ov-next-arrow{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;position:relative;z-index:1;}
+  .ov-next-line{flex:1;height:1px;background:rgba(255,255,255,.1);max-width:160px;}
+  .ov-next-label{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;}
+  /* 4 cards */
+  .ov-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative;z-index:1;}
+  .ov-card{border-radius:12px;padding:18px 16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .ov-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(200,149,42,.15);}
+
+  /* SHARED */
+  .sec-hero{padding:52px 48px;text-align:center;position:relative;overflow:hidden;}
+  .sec-hero.np{background:linear-gradient(135deg,var(--npd) 0%,var(--np) 100%);}
+  .sec-hero-deco{position:absolute;font-size:64px;opacity:.07;pointer-events:none;}
+  .sec-hero-deco.l{left:3%;top:50%;transform:translateY(-50%);}
+  .sec-hero-deco.r{right:3%;top:50%;transform:translateY(-50%);}
+  .sec-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.35);padding:4px 14px;border-radius:20px;margin-bottom:14px;}
+  .sec-h{font-size:clamp(22px,3vw,40px);font-weight:800;color:var(--white);margin-bottom:12px;line-height:1.2;}
+  .sec-h em{color:var(--goldl);font-style:normal;}
+  .sec-p{font-size:14px;color:rgba(255,255,255,.6);max-width:520px;margin:0 auto;line-height:1.7;}
+
+  /* WHY NOT JUST CRM */
+  #tab-crm{background:var(--cream);}
+  .verdict-wrap{padding:44px 48px;background:var(--white);}
+  .verdict-box{max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.12);}
+  .v-side{padding:34px 30px;}
+  .v-side.bad{background:var(--dark);}.v-side.good{background:linear-gradient(135deg,var(--np),var(--npl));}
+  .v-eye{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+  .v-side.bad .v-eye{color:rgba(255,255,255,.3);}.v-side.good .v-eye{color:rgba(255,255,255,.6);}
+  .v-head{font-size:19px;font-weight:800;line-height:1.3;margin-bottom:12px;}
+  .v-side.bad .v-head{color:rgba(255,255,255,.9);}.v-side.good .v-head{color:var(--white);}
+  .v-body{font-size:13px;line-height:1.7;}
+  .v-side.bad .v-body{color:rgba(255,255,255,.5);}.v-side.good .v-body{color:rgba(255,255,255,.85);}
+  .v-pill{display:inline-block;margin-top:14px;font-size:11px;font-weight:800;padding:6px 14px;border-radius:20px;}
+  .v-side.bad .v-pill{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);}
+  .v-side.good .v-pill{background:rgba(255,255,255,.18);color:var(--white);}
+  .pipe-section{padding:44px 48px;background:var(--cream);}
+  .pipe-label{text-align:center;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:28px;}
+  .pipe-diagram{max-width:860px;margin:0 auto;}
+  .pipe-crm-wrap{display:flex;justify-content:center;}
+  .pipe-crm-box{background:var(--npd);color:var(--white);border-radius:12px;padding:14px 24px;display:inline-flex;align-items:center;gap:12px;}
+  .pipe-crm-icon{font-size:22px;}
+  .pipe-crm-title{font-size:14px;font-weight:800;}
+  .pipe-crm-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+  .pipe-crm-pill{background:rgba(200,149,42,.2);color:var(--goldl);font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;margin-left:10px;border:1px solid rgba(200,149,42,.4);}
+  .pipe-v{width:3px;height:24px;background:linear-gradient(to bottom,var(--npd),var(--gold));margin:0 auto;}
+  .pipe-bar{height:5px;border-radius:3px;background:linear-gradient(to right,rgba(200,149,42,.2),var(--gold) 20%,var(--gold) 80%,rgba(200,149,42,.2));}
+  .pipe-drops{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .pdrop{display:flex;flex-direction:column;align-items:center;}
+  .pd-v{width:2px;height:22px;background:linear-gradient(to bottom,var(--gold),rgba(200,149,42,.2));}
+  .pd-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 7px rgba(200,149,42,.5);margin-bottom:8px;}
+  .pd-card{background:var(--white);border:2px solid rgba(200,149,42,.15);border-radius:10px;padding:12px 10px;text-align:center;width:100%;transition:all .3s;}
+  .pd-card:hover{border-color:var(--gold);transform:translateY(-3px);}
+  .pd-icon{font-size:18px;margin-bottom:4px;}
+  .pd-num{font-size:9px;font-weight:800;color:var(--np);letter-spacing:.5px;margin-bottom:2px;}
+  .pd-name{font-size:10px;font-weight:700;color:var(--dark);line-height:1.4;margin-bottom:4px;}
+  .pd-lever{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:7px;background:var(--goldp);color:var(--gold);}
+  .args-section{padding:0 48px 44px;background:var(--cream);}
+  .args-title{text-align:center;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:20px;padding-top:40px;}
+  .args-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:860px;margin:0 auto;}
+  .arg-card{border-radius:12px;overflow:hidden;border:1px solid var(--lgray);}
+  .arg-head{padding:18px 18px 14px;}
+  .arg-head.c1{background:linear-gradient(135deg,var(--np),var(--npl));}
+  .arg-head.c2{background:linear-gradient(135deg,var(--npd),#3a0b1e);}
+  .arg-head.c3{background:linear-gradient(135deg,#3a0b1e,var(--npd));}
+  .arg-icon{font-size:20px;margin-bottom:5px;}
+  .arg-title{font-size:12px;font-weight:800;color:var(--white);line-height:1.4;}
+  .arg-body{padding:16px;background:var(--white);}
+  .arg-points{display:flex;flex-direction:column;gap:7px;}
+  .arg-pt{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--dark);line-height:1.5;}
+  .arg-dot{width:6px;height:6px;border-radius:50%;background:var(--np);flex-shrink:0;margin-top:4px;}
+  .arg-warn{margin-top:10px;bac<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NP × EDT – Phase 2</title>
+<style>
+  :root {
+    --np:#7B1C3E; --npd:#4a0e25; --npl:#9B2A52;
+    --gold:#C8952A; --goldl:#E8B84B; --goldp:#FDF3E0;
+    --acc:#A100FF; --accl:#C84BFF;
+    --dark:#111; --gray:#555; --lgray:#ddd; --white:#fff; --cream:#fafafa;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;width:100%;font-family:'Segoe UI',Arial,sans-serif;background:#000;overflow:hidden;}
+
+  /* ── LAYOUT ── */
+  .app{display:flex;width:100vw;height:100vh;}
+
+  /* ── SIDE NAV ── */
+  .sidenav{width:140px;min-width:140px;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:stretch;padding:16px 0 80px;gap:2px;z-index:200;border-right:1px solid rgba(255,255,255,.07);}
+  .sn-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;position:relative;}
+  .sn-item:hover{background:rgba(255,255,255,.08);}
+  .sn-item.active{background:rgba(200,149,42,.15);border-left-color:var(--gold);}
+  .sn-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);flex-shrink:0;transition:all .2s;}
+  .sn-item.active .sn-dot{background:var(--gold);width:8px;height:8px;}
+  .sn-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.4);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sn-item.active .sn-label{color:var(--white);font-weight:700;}
+  .sn-item:hover .sn-label{color:rgba(255,255,255,.7);}
+
+  /* ── DECK ── */
+  .deck{flex:1;position:relative;overflow:hidden;}
+
+  /* ── SLIDES ── */
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;}
+  .slide.active{display:flex;}
+
+  /* ── BOTTOM NAV ── */
+  .nav{position:fixed;bottom:0;left:140px;right:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;padding:10px 32px;}
+  .nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);font-size:15px;font-weight:700;padding:9px 26px;border-radius:22px;cursor:pointer;transition:all .2s;}
+  .nav-btn:hover{background:var(--gold);border-color:var(--gold);color:var(--dark);}
+  .nav-btn:disabled{opacity:.2;cursor:default;}
+  .nav-label{font-size:13px;color:rgba(255,255,255,.45);letter-spacing:.5px;}
+  .nav-counter{font-size:12px;color:rgba(255,255,255,.25);}
+
+  /* ── PROGRESS ── */
+  .progress-bar{position:fixed;top:0;left:140px;right:0;height:4px;background:rgba(255,255,255,.08);z-index:300;}
+  .progress-fill{height:100%;background:linear-gradient(to right,var(--np),var(--gold));transition:width .35s ease;}
+
+  /* ══════════════════════════════
+     SLIDE LAYOUTS
+  ══════════════════════════════ */
+
+  /* COVER */
+  .s-cover{background:linear-gradient(140deg,var(--npd) 0%,var(--np) 50%,#a03060 100%);justify-content:center;align-items:center;text-align:center;overflow:hidden;padding-bottom:56px;}
+  .s-cover::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:32px 32px;}
+  .cover-arc{position:absolute;border-radius:50%;pointer-events:none;}
+  .cover-arc.a1{width:600px;height:600px;right:-150px;top:-150px;border:1px solid rgba(200,149,42,.15);}
+  .cover-arc.a2{width:400px;height:400px;right:-80px;top:-80px;border:1px solid rgba(200,149,42,.1);}
+  .deco{position:absolute;font-size:80px;opacity:.06;pointer-events:none;}
+  .deco.d1{bottom:15%;left:4%;}
+  .deco.d2{top:10%;right:18%;}
+  .deco.d3{bottom:8%;right:5%;}
+  .cover-inner{position:relative;z-index:1;max-width:820px;padding:0 40px;}
+  .logos-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:40px;}
+  .logo-np{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:10px 20px;display:flex;align-items:center;gap:10px;}
+  .logo-np-nestle{font-size:18px;font-weight:900;color:var(--white);display:block;}
+  .logo-np-pro{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.55);display:block;}
+  .logo-sep{font-size:20px;color:rgba(255,255,255,.3);}
+  .logo-acn{background:rgba(161,0,255,.18);border:1px solid rgba(161,0,255,.35);border-radius:14px;padding:10px 20px;display:flex;align-items:center;gap:9px;}
+  .acn-word{font-size:18px;font-weight:800;color:var(--accl);}
+  .cover-tag{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:18px;}
+  .cover-h1{font-size:clamp(40px,5.5vw,68px);font-weight:900;color:var(--white);line-height:1.05;margin-bottom:18px;}
+  .cover-h1 em{color:var(--goldl);font-style:normal;}
+  .cover-sub{font-size:20px;color:rgba(255,255,255,.65);line-height:1.7;max-width:600px;margin:0 auto;}
+
+  /* SECTION DIVIDER — full bleed */
+  .s-div{justify-content:center;align-items:center;text-align:center;overflow:hidden;padding-bottom:56px;}
+  .s-div.np{background:linear-gradient(135deg,var(--npd),var(--np));}
+  .s-div::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;}
+  .s-div-deco{position:absolute;font-size:70px;opacity:.06;pointer-events:none;}
+  .div-tag{font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;position:relative;z-index:1;}
+  .div-h{font-size:clamp(38px,5vw,62px);font-weight:900;color:var(--white);line-height:1.1;position:relative;z-index:1;}
+  .div-h em{color:var(--goldl);font-style:normal;}
+  .div-sub{font-size:20px;color:rgba(255,255,255,.65);margin-top:20px;max-width:600px;line-height:1.65;position:relative;z-index:1;}
+
+  /* CENTERED LIGHT */
+  .s-center{background:var(--white);justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:56px 80px 72px;overflow:hidden;}
+
+  /* CENTERED DARK */
+  .s-cdark{background:var(--npd);justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:56px 80px 72px;overflow:hidden;}
+  .s-cdark::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;}
+
+  /* CLOSING */
+  .s-closing{background:linear-gradient(140deg,var(--npd) 0%,var(--np) 50%,#a03060 100%);justify-content:center;align-items:center;text-align:center;overflow:hidden;padding-bottom:56px;}
+  .s-closing::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:32px 32px;}
+
+  /* ══════════════════════════════
+     COMPONENTS
+  ══════════════════════════════ */
+  .slide-tag{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+
+  /* Journey */
+  .journey-wrap{width:100%;max-width:920px;position:relative;z-index:1;}
+  .journey-line{position:absolute;top:30px;left:5%;right:5%;height:2px;background:linear-gradient(to right,rgba(255,255,255,.1),var(--gold),rgba(255,255,255,.1));}
+  .journey-steps{display:flex;align-items:flex-start;position:relative;z-index:1;}
+  .jstep{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .jstep-dot{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;margin-bottom:16px;}
+  .jstep.done .jstep-dot{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);color:var(--white);}
+  .jstep.here .jstep-dot{background:var(--gold);color:var(--dark);box-shadow:0 0 0 8px rgba(200,149,42,.2);}
+  .jstep-lbl{font-size:14px;font-weight:600;color:rgba(255,255,255,.6);line-height:1.4;max-width:120px;}
+  .jstep.here .jstep-lbl{color:var(--goldl);font-weight:800;}
+  .here-pill{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--dark);font-size:10px;font-weight:800;padding:3px 10px;border-radius:6px;white-space:nowrap;}
+  .here-pill::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gold);}
+
+  /* Big statement */
+  .big{font-size:clamp(28px,3.8vw,48px);font-weight:800;line-height:1.2;max-width:720px;}
+  .big.dark{color:var(--npd);}
+  .big.dark em{color:var(--np);}
+  .big.light{color:var(--white);}
+  .big.light em{color:var(--goldl);}
+  .sub{font-size:18px;color:var(--gray);line-height:1.75;max-width:620px;margin-top:14px;}
+  .sub.light{color:rgba(255,255,255,.65);}
+
+  /* Verdict */
+  .verdict{display:grid;grid-template-columns:1fr 1fr;gap:4px;border-radius:16px;overflow:hidden;width:100%;max-width:880px;box-shadow:0 12px 48px rgba(0,0,0,.15);}
+  .vcard{padding:44px 40px;}
+  .vcard.bad{background:var(--dark);}
+  .vcard.good{background:linear-gradient(135deg,var(--np),var(--npl));}
+  .v-eye{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;}
+  .vcard.bad .v-eye{color:rgba(255,255,255,.3);}
+  .vcard.good .v-eye{color:rgba(255,255,255,.6);}
+  .v-h{font-size:22px;font-weight:800;line-height:1.3;margin-bottom:14px;}
+  .vcard.bad .v-h{color:rgba(255,255,255,.9);}
+  .vcard.good .v-h{color:var(--white);}
+  .v-b{font-size:16px;line-height:1.75;}
+  .vcard.bad .v-b{color:rgba(255,255,255,.55);}
+  .vcard.good .v-b{color:rgba(255,255,255,.88);}
+  .v-pill{display:inline-block;margin-top:18px;font-size:13px;font-weight:800;padding:7px 18px;border-radius:20px;}
+  .vcard.bad .v-pill{background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);}
+  .vcard.good .v-pill{background:rgba(255,255,255,.18);color:var(--white);}
+
+  /* Pipe */
+  .pipe-wrap{width:100%;max-width:880px;}
+  .pipe-crm-row{display:flex;justify-content:center;}
+  .pipe-crm{background:var(--npd);border-radius:12px;padding:16px 28px;display:inline-flex;align-items:center;gap:14px;}
+  .pipe-crm-icon{font-size:26px;}
+  .pipe-crm-title{font-size:17px;font-weight:800;color:var(--white);}
+  .pipe-crm-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;}
+  .pipe-crm-pill{background:rgba(200,149,42,.2);border:1px solid rgba(200,149,42,.4);color:var(--goldl);font-size:10px;font-weight:700;padding:3px 10px;border-radius:8px;margin-left:10px;}
+  .pipe-v{width:3px;height:26px;background:linear-gradient(to bottom,var(--npd),var(--gold));margin:0 auto;}
+  .pipe-bar{height:5px;border-radius:3px;background:linear-gradient(to right,rgba(200,149,42,.15),var(--gold) 15%,var(--gold) 85%,rgba(200,149,42,.15));}
+  .pipe-drops{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+  .pdrop{display:flex;flex-direction:column;align-items:center;}
+  .pd-v{width:2px;height:22px;background:linear-gradient(to bottom,var(--gold),rgba(200,149,42,.1));}
+  .pd-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(200,149,42,.5);margin-bottom:8px;}
+  .pd-card{background:var(--white);border:2px solid rgba(200,149,42,.2);border-radius:10px;padding:14px 10px;text-align:center;width:100%;transition:all .3s;}
+  .pd-card:hover{border-color:var(--gold);transform:translateY(-3px);}
+  .pd-icon{font-size:22px;margin-bottom:5px;}
+  .pd-num{font-size:11px;font-weight:800;color:var(--np);margin-bottom:2px;}
+  .pd-name{font-size:13px;font-weight:700;color:var(--dark);line-height:1.4;margin-bottom:5px;}
+  .pd-lever{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--goldp);color:var(--gold);display:inline-block;}
+
+  /* Workstream cards with expand */
+  .ws-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:880px;}
+  .ws-block{background:var(--cream);border-radius:14px;border:1px solid var(--lgray);border-top:6px solid var(--np);overflow:hidden;cursor:pointer;transition:box-shadow .2s;}
+  .ws-block.b2{border-top-color:#1a5096;}
+  .ws-block.b3{border-top-color:var(--npd);}
+  .ws-block.b4{border-top-color:#6b4400;}
+  .ws-block:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);}
+  .ws-head{padding:24px 26px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .ws-head-left{flex:1;}
+  .ws-num{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--gold);margin-bottom:7px;}
+  .ws-title{font-size:18px;font-weight:800;color:var(--npd);margin-bottom:7px;line-height:1.3;}
+  .ws-desc{font-size:14px;color:var(--gray);line-height:1.6;}
+  .ws-toggle{font-size:14px;color:var(--lgray);flex-shrink:0;margin-top:4px;transition:transform .3s;}
+  .ws-block.open .ws-toggle{transform:rotate(180deg);}
+  .ws-detail{display:none;border-top:1px solid var(--lgray);background:#fff;}
+  .ws-block.open .ws-detail{display:grid;grid-template-columns:repeat(3,1fr);}
+  .ws-dcol{padding:16px 18px;border-right:1px solid var(--lgray);}
+  .ws-dcol:last-child{border-right:none;}
+  .ws-dcol-head{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+  .ws-ditems{display:flex;flex-direction:column;gap:7px;}
+  .ws-ditem{background:var(--cream);border-radius:7px;padding:9px 11px;border:1px solid var(--lgray);}
+  .ws-ditem.hl{background:var(--goldp);border-color:rgba(200,149,42,.3);}
+  .ws-ditem-title{font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:1px;}
+  .ws-ditem.hl .ws-ditem-title{color:#8a5a00;}
+  .ws-ditem-desc{font-size:11px;color:var(--gray);line-height:1.4;}
+
+  /* Timeline */
+  .tl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:16px;overflow:hidden;width:100%;max-width:880px;}
+  .tl-ph{padding:28px 24px;}
+  .tl-ph.p1{background:linear-gradient(135deg,#fde8ee,#fbd0dc);}
+  .tl-ph.p2{background:linear-gradient(135deg,var(--np),var(--npl));}
+  .tl-ph.p3{background:linear-gradient(135deg,var(--goldp),#ffecc8);}
+  .tl-name{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+  .tl-ph.p1 .tl-name{color:var(--np);}
+  .tl-ph.p2 .tl-name{color:rgba(255,255,255,.7);}
+  .tl-ph.p3 .tl-name{color:#8a5a00;}
+  .tl-period{font-size:22px;font-weight:800;margin-bottom:16px;}
+  .tl-ph.p1 .tl-period,.tl-ph.p3 .tl-period{color:var(--dark);}
+  .tl-ph.p2 .tl-period{color:var(--white);}
+  .tl-item{border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+  .tl-ph.p1 .tl-item,.tl-ph.p3 .tl-item{background:rgba(255,255,255,.8);}
+  .tl-ph.p2 .tl-item{background:rgba(255,255,255,.12);}
+  .tl-iname{font-size:15px;font-weight:700;margin-bottom:2px;}
+  .tl-ph.p1 .tl-iname,.tl-ph.p3 .tl-iname{color:var(--dark);}
+  .tl-ph.p2 .tl-iname{color:var(--white);}
+  .tl-idesc{font-size:13px;line-height:1.5;}
+  .tl-ph.p1 .tl-idesc,.tl-ph.p3 .tl-idesc{color:var(--gray);}
+  .tl-ph.p2 .tl-idesc{color:rgba(255,255,255,.6);}
+
+  /* Accenture cards */
+  .acn-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;max-width:880px;}
+  .acn-card{border-radius:14px;padding:28px;background:var(--cream);border:1px solid var(--lgray);border-top:5px solid var(--np);}
+  .acn-card.c2{border-top-color:var(--gold);}
+  .acn-card.c3{border-top-color:var(--npd);}
+  .acn-icon{font-size:30px;margin-bottom:12px;}
+  .acn-title{font-size:18px;font-weight:800;margin-bottom:9px;}
+  .acn-card .acn-title{color:var(--np);}
+  .acn-card.c2 .acn-title{color:var(--gold);}
+  .acn-card.c3 .acn-title{color:var(--npd);}
+  .acn-desc{font-size:15px;color:var(--gray);line-height:1.65;}
+  .acn-footer{background:var(--npd);border-radius:12px;padding:20px 26px;display:flex;align-items:flex-start;gap:14px;width:100%;max-width:880px;margin-top:14px;}
+  .acn-footer-icon{font-size:22px;flex-shrink:0;}
+  .acn-footer-text{font-size:15px;color:rgba(255,255,255,.8);line-height:1.65;}
+
+  /* Meeting cards */
+  .meet-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:760px;}
+  .meet{background:var(--white);border-radius:12px;padding:20px 24px;border:1px solid var(--lgray);border-left:6px solid var(--np);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .meet.gold{border-left-color:var(--gold);}
+  .meet.gray{border-left-color:var(--lgray);}
+  .meet-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:8px;}
+  .meet-who{display:flex;align-items:center;gap:10px;}
+  .meet-icon{font-size:22px;}
+  .meet-title{font-size:17px;font-weight:800;color:var(--npd);}
+  .meet-subtitle{font-size:12px;color:var(--gray);margin-top:2px;}
+  .meet-name{font-size:13px;font-weight:800;padding:5px 14px;border-radius:20px;}
+  .meet:not(.gold):not(.gray) .meet-name{background:#fde8ee;color:var(--np);}
+  .meet.gold .meet-name{background:var(--goldp);color:var(--gold);}
+  .meet.gray .meet-name{background:var(--cream);color:var(--gray);}
+  .meet-body{font-size:15px;color:var(--dark);line-height:1.65;margin-bottom:9px;}
+  .meet-q{background:var(--cream);border-radius:7px;padding:10px 14px;font-size:13px;color:var(--dark);line-height:1.55;}
+  .meet-q strong{color:var(--np);}
+  .meet.gold .meet-q strong{color:var(--gold);}
+
+  /* Pre-asks */
+  .pre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:760px;}
+  .pre{background:var(--white);border-radius:12px;padding:20px 22px;border:1px solid var(--lgray);display:flex;align-items:flex-start;gap:14px;}
+  .pre-icon{font-size:26px;flex-shrink:0;}
+  .pre-title{font-size:17px;font-weight:800;color:var(--npd);margin-bottom:4px;}
+  .pre-desc{font-size:14px;color:var(--gray);line-height:1.55;}
+
+  /* Quote */
+  .quote{font-size:clamp(24px,3vw,40px);font-weight:700;color:var(--white);font-style:italic;line-height:1.6;max-width:740px;text-align:center;position:relative;z-index:1;}
+  .quote em{color:var(--goldl);font-style:normal;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDE NAV -->
+  <div class="sidenav" id="sidenav"></div>
+
+  <!-- DECK -->
+  <div class="deck" id="deck">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+    <!-- 1. COVER -->
+    <div class="slide s-cover" data-label="Cover">
+      <div class="cover-arc a1"></div><div class="cover-arc a2"></div>
+      <span class="deco d1">☕</span><span class="deco d2">👨‍🍳</span><span class="deco d3">🍽️</span>
+      <div class="cover-inner">
+        <div class="logos-row">
+          <div class="logo-np">
+            <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="17" stroke="white" stroke-width="2.5"/>
+              <path d="M20 4 A16 16 0 0 1 36 20" stroke="#E8B84B" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+              <path d="M14 5 A16 16 0 0 1 36 26" stroke="#C8952A" stroke-width="2" stroke-linecap="round" fill="none" opacity=".6"/>
+              <text x="11" y="26" font-family="Arial" font-weight="900" font-size="16" fill="white">N</text>
+            </svg>
+            <div class="logo-np-text"><span class="logo-np-nestle">Nestlé</span><span class="logo-np-pro">Professional</span></div>
+          </div>
+          <span class="logo-sep">×</span>
+          <div class="logo-acn">
+            <svg width="14" height="18" viewBox="0 0 16 20" fill="none"><path d="M2 2L14 10L2 18" stroke="#C84BFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="acn-word">accenture</span>
+          </div>
+        </div>
+        <div class="cover-tag">Phase 2 · March 2026</div>
+        <h1 class="cover-h1">Turning the Roadmap<br>into <em>Real Outcomes</em></h1>
+        <p class="cover-sub">Phase 1 is complete. We have the strategy, the portfolio, and the ambition. Now it's time to act.</p>
+      </div>
+    </div>
+
+    <!-- 2. JOURNEY -->
+    <div class="slide s-cdark" data-label="Where We Are">
+      <div class="slide-tag" style="color:var(--gold);">Phase 1 — What we delivered</div>
+      <div class="big light" style="margin-bottom:44px;font-size:clamp(26px,3.2vw,42px);">The strategy is set.<br><em>Phase 2 is where it becomes real.</em></div>
+      <div class="journey-wrap">
+        <div class="journey-line"></div>
+        <div class="journey-steps">
+          <div class="jstep done"><div class="jstep-dot">1</div><div style="font-size:18px;margin-bottom:6px;">🔍</div><div class="jstep-lbl">Reality discovered &amp; themes defined</div></div>
+          <div class="jstep done"><div class="jstep-dot">2</div><div style="font-size:18px;margin-bottom:6px;">🗺️</div><div class="jstep-lbl">Themes mapped to capabilities</div></div>
+          <div class="jstep done"><div class="jstep-dot">3</div><div style="font-size:18px;margin-bottom:6px;">📊</div><div class="jstep-lbl">Gaps assessed &amp; ambitions set</div></div>
+          <div class="jstep done"><div class="jstep-dot">4</div><div style="font-size:18px;margin-bottom:6px;">🗂️</div><div class="jstep-lbl">Initiatives prioritized &amp; roadmap built</div></div>
+          <div class="jstep here" style="position:relative;"><div class="here-pill">We are here</div><div class="jstep-dot">5</div><div style="font-size:18px;margin-bottom:6px;">🚀</div><div class="jstep-lbl">Personas &amp; workflows brought to life</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CRM ARGUMENT -->
+    <div class="slide s-div np" data-label="The Core Argument">
+      <span class="s-div-deco" style="left:3%;top:20%;">☕</span>
+      <span class="s-div-deco" style="right:4%;bottom:20%;">🍽️</span>
+      <div class="div-tag">The Bigger Question</div>
+      <h2 class="div-h">CRM alone is just<br><em>another IT project.</em></h2>
+      <p class="div-sub">The CRM is the right foundation. The bigger opportunity is making sure this is a <strong style="color:var(--goldl);">business-led transformation</strong> — not just a technology deployment.</p>
+    </div>
+
+    <!-- 4. TECH vs BIZ -->
+    <div class="slide s-center" data-label="Tech vs Biz">
+      <div class="slide-tag">The Choice That Changes Everything</div>
+      <div class="verdict">
+        <div class="vcard bad"><div class="v-eye">❌ CRM only</div><div class="v-h">An IT project that landed a new system</div><div class="v-b">The business sees a new tool. IT owns it. Adoption is low. Six months later, leadership asks what they got for the investment.</div><div class="v-pill">Outcome: Expensive shelfware</div></div>
+        <div class="vcard good"><div class="v-eye">✅ CRM + Initiatives</div><div class="v-h">A business transformation that happens to use a CRM</div><div class="v-b">The business owns it. Sales teams use it daily because it shows exactly who to call, what to pitch, and when to act.</div><div class="v-pill">Outcome: Growth you can measure</div></div>
+      </div>
+    </div>
+
+    <!-- 5. PIPE DIAGRAM -->
+    <div class="slide s-center" data-label="The Plumbing & Water">
+      <div class="slide-tag" style="margin-bottom:8px;">Why the initiatives matter</div>
+      <p style="font-size:17px;color:var(--gray);margin-bottom:26px;">The CRM is the plumbing. The initiatives are the water that flows through it.</p>
+      <div class="pipe-wrap">
+        <div class="pipe-crm-row"><div class="pipe-crm"><div class="pipe-crm-icon">🗄️</div><div><div class="pipe-crm-title">Initiative 10 — Unified NP CRM Backbone</div><div class="pipe-crm-sub">The infrastructure. Connects data, accounts &amp; systems.<span class="pipe-crm-pill">Must Have</span></div></div></div></div>
+        <div class="pipe-v"></div>
+        <div class="pipe-bar"></div>
+        <div class="pipe-drops">
+          <div class="pdrop"><div class="pd-v"></div><div class="pd-dot"></div><div class="pd-card"><div class="pd-icon">🤖</div><div class="pd-num">Init. 1</div><div class="pd-name">AI Lead Engine</div><div class="pd-lever">📈 Conversion</div></div></div>
+          <div class="pdrop"><div class="pd-v"></div><div class="pd-dot"></div><div class="pd-card"><div class="pd-icon">🛡️</div><div class="pd-num">Init. 3</div><div class="pd-name">Predictive Churn</div><div class="pd-lever">🔒 Retention</div></div></div>
+          <div class="pdrop"><div class="pd-v"></div><div class="pd-dot"></div><div class="pd-card"><div class="pd-icon">🧠</div><div class="pd-num">Init. 7</div><div class="pd-name">AI Sales Co-Pilot</div><div class="pd-lever">💹 Margin</div></div></div>
+          <div class="pdrop"><div class="pd-v"></div><div class="pd-dot"></div><div class="pd-card"><div class="pd-icon">🎯</div><div class="pd-num">Init. 9</div><div class="pd-name">Market Intelligence</div><div class="pd-lever">📊 Revenue</div></div></div>
+          <div class="pdrop"><div class="pd-v"></div><div class="pd-dot"></div><div class="pd-card"><div class="pd-icon">🛒</div><div class="pd-num">Init. 21</div><div class="pd-name">eB2B Engine</div><div class="pd-lever">💰 Revenue</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. WORKSTREAMS INTRO -->
+    <div class="slide s-div np" data-label="Our Approach">
+      <span class="s-div-deco" style="left:3%;top:20%;">☕</span>
+      <div class="div-tag">Our Proposed Approach</div>
+      <h2 class="div-h">4+1 Workstreams,<br><em>Running in Parallel</em></h2>
+      <p class="div-sub">While Salesforce is being built, we design and prepare everything on top — so the business is ready to move on day one.</p>
+      <!-- CRM expandable pill -->
+      <div style="margin-top:32px;position:relative;z-index:2;">
+        <div onclick="toggleCRM(this)" style="display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border:1px solid rgba(200,149,42,.4);border-radius:30px;padding:10px 22px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(200,149,42,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+          <span style="font-size:16px;">🗄️</span>
+          <span style="font-size:14px;font-weight:700;color:var(--goldl);">+1 · Salesforce CRM B2B Build</span>
+          <span style="font-size:12px;color:rgba(255,255,255,.5);" id="crm-toggle-arrow">↓ expand</span>
+        </div>
+        <div id="crm-expand" style="display:none;margin-top:14px;background:var(--white);border-radius:14px;overflow:hidden;border:2px solid var(--gold);max-width:820px;text-align:left;">
+          <div style="background:var(--npd);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🗄️</span><div><div style="font-size:14px;font-weight:800;color:var(--white);">Salesforce CRM — NP B2B Build</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px;">Currently in flight · US-led with Global IT · Open questions to resolve</div></div></div>
+            <div style="background:rgba(200,149,42,.2);border:1px solid var(--gold);color:var(--goldl);font-size:10px;font-weight:800;padding:3px 10px;border-radius:8px;">Accenture can support</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);">
+            <div style="padding:16px 18px;border-right:1px solid var(--lgray);">
+              <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;">How Accenture can support</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="background:var(--goldp);border:1px solid rgba(200,149,42,.25);border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:2px;">Build a fully B2B version</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">Configure Salesforce specifically for NP's B2B model — not generic, built around how NP sells</div></div>
+                <div style="background:var(--cream);border:1px solid var(--lgray);border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--dark);margin-bottom:2px;">Connect it to the initiatives</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">Data architecture supports AI, churn &amp; intelligence layers from day one</div></div>
+                <div style="background:var(--cream);border:1px solid var(--lgray);border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--dark);margin-bottom:2px;">Bridge Global IT and the business</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">Sit between the technical build and commercial requirements</div></div>
+              </div>
+            </div>
+            <div style="padding:16px 18px;border-right:1px solid var(--lgray);">
+              <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;">Open questions to resolve</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="background:#fff8ed;border:1px solid #f0d8a0;border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:#8a5a00;margin-bottom:2px;">Vendor scope: Accenture vs IBM</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">What is each party responsible for? Where does one end and the other begin?</div></div>
+                <div style="background:#fff8ed;border:1px solid #f0d8a0;border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:#8a5a00;margin-bottom:2px;">Global IT vs Market ownership</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">US is leading with Global IT — how does this interact with regional needs?</div></div>
+                <div style="background:#fff8ed;border:1px solid #f0d8a0;border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:#8a5a00;margin-bottom:2px;">Pilot scope boundary</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">What does the US pilot include vs what's designed for global rollout?</div></div>
+              </div>
+            </div>
+            <div style="padding:16px 18px;">
+              <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;">Our position</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="background:var(--cream);border:1px solid var(--lgray);border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--dark);margin-bottom:2px;">We are not hands-off on the CRM</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">Accenture can actively ensure it's configured for NP's B2B reality</div></div>
+                <div style="background:var(--cream);border:1px solid var(--lgray);border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--dark);margin-bottom:2px;">But scope needs to be clear</div><div style="font-size:11px;color:var(--gray);line-height:1.5;">We need clarity on what IBM is doing and what Global IT owns</div></div>
+                <div style="background:#fde8ee;border:1px solid #f5b8c8;border-radius:7px;padding:9px 11px;"><div style="font-size:12px;font-weight:800;color:var(--np);margin-bottom:2px;">⚠️ Needs a conversation</div><div style="font-size:11px;color:var(--np);line-height:1.5;">Should be resolved in the upcoming leadership meetings</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. THE 4 WORKSTREAMS (expandable) -->
+    <div class="slide s-center" data-label="4+1 Workstreams">
+      <div class="slide-tag">Click any workstream to expand</div>
+      <div class="ws-grid">
+        <div class="ws-block" onclick="toggleWS(this)">
+          <div class="ws-head"><div class="ws-head-left"><div class="ws-num">WS 1</div><div class="ws-title">📋 Initiative Design & Blueprints</div><div class="ws-desc">A detailed, ready-to-fund plan per initiative — eB2B, AI Lead, Churn Engine, Sales Co-Pilot.</div></div><div class="ws-toggle">▼</div></div>
+          <div class="ws-detail">
+            <div class="ws-dcol"><div class="ws-dcol-head">What we do</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Blueprint per initiative</span><span class="ws-ditem-desc">One deep-dive plan — not a generic overview</span></div><div class="ws-ditem"><span class="ws-ditem-title">Business case</span><span class="ws-ditem-desc">What it costs, what it returns, and when</span></div><div class="ws-ditem"><span class="ws-ditem-title">CRM dependency map</span><span class="ws-ditem-desc">What each initiative needs from the backbone</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Priority initiatives</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">🛒 Init. 21 — eB2B Engine</span><span class="ws-ditem-desc">Digital shelf &amp; marketplace</span></div><div class="ws-ditem"><span class="ws-ditem-title">🤖 Init. 1 — AI Lead Engine</span><span class="ws-ditem-desc">Smarter lead generation</span></div><div class="ws-ditem"><span class="ws-ditem-title">🧠 Init. 7 — Sales Co-Pilot</span><span class="ws-ditem-desc">AI-guided next best action</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Accenture's role</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Run design sprints</span><span class="ws-ditem-desc">Hands-on workshops with NP commercial teams</span></div><div class="ws-ditem"><span class="ws-ditem-title">Author the blueprints</span><span class="ws-ditem-desc">Everything needed for a funding decision</span></div><div class="ws-ditem hl"><span class="ws-ditem-title">Prepare for sign-off</span><span class="ws-ditem-desc">Each blueprint ready for Steerco approval</span></div></div></div>
+          </div>
+        </div>
+        <div class="ws-block b2" onclick="toggleWS(this)">
+          <div class="ws-head"><div class="ws-head-left"><div class="ws-num">WS 2</div><div class="ws-title">🗺️ Market Rollout & Wave 1 Pilots</div><div class="ws-desc">Assess market readiness, sequence rollout, get pilots live in the right markets first.</div></div><div class="ws-toggle">▼</div></div>
+          <div class="ws-detail">
+            <div class="ws-dcol"><div class="ws-dcol-head">What we do</div><div class="ws-ditems"><div class="ws-ditem hl"><span class="ws-ditem-title">Market capability check</span><span class="ws-ditem-desc">Data, tech, people &amp; processes per market</span></div><div class="ws-ditem"><span class="ws-ditem-title">Rollout sequencing</span><span class="ws-ditem-desc">Which markets go first and why</span></div><div class="ws-ditem"><span class="ws-ditem-title">Wave 1 pilot launch</span><span class="ws-ditem-desc">First markets live with working MVPs</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Wave 1 markets</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">🤖 AI Lead Engine</span><span class="ws-ditem-desc">India · MY/SG · Greece</span></div><div class="ws-ditem"><span class="ws-ditem-title">🛡️ Churn Engine</span><span class="ws-ditem-desc">SEA · Iberia</span></div><div class="ws-ditem"><span class="ws-ditem-title">🛒 eB2B Engine</span><span class="ws-ditem-desc">Europe</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Accenture's role</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Run capability assessments</span><span class="ws-ditem-desc">Rollout plans based on facts, not assumptions</span></div><div class="ws-ditem"><span class="ws-ditem-title">Embed in pilot markets</span><span class="ws-ditem-desc">Delivery teams on the ground</span></div><div class="ws-ditem hl"><span class="ws-ditem-title">Track &amp; iterate fast</span><span class="ws-ditem-desc">Fix what's not working before scaling</span></div></div></div>
+          </div>
+        </div>
+        <div class="ws-block b3" onclick="toggleWS(this)">
+          <div class="ws-head"><div class="ws-head-left"><div class="ws-num">WS 3</div><div class="ws-title">📊 Value Tracking, People & Adoption</div><div class="ws-desc">Measure the investment, build the change network, train commercial teams.</div></div><div class="ws-toggle">▼</div></div>
+          <div class="ws-detail">
+            <div class="ws-dcol"><div class="ws-dcol-head">What we do</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Set the baseline</span><span class="ws-ditem-desc">Agree starting points to prove the difference</span></div><div class="ws-ditem"><span class="ws-ditem-title">Build change network</span><span class="ws-ditem-desc">Champions in each market who own adoption</span></div><div class="ws-ditem"><span class="ws-ditem-title">Upskill commercial teams</span><span class="ws-ditem-desc">Practical training — not theory</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">What gets built</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">📊 Live value dashboard</span><span class="ws-ditem-desc">Real-time view of what each initiative delivers</span></div><div class="ws-ditem"><span class="ws-ditem-title">🏆 Champion playbook</span><span class="ws-ditem-desc">How to activate adoption in each market</span></div><div class="ws-ditem"><span class="ws-ditem-title">🎯 New incentive design</span><span class="ws-ditem-desc">KPIs that reinforce the new ways of working</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Accenture's role</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Build &amp; run Value Office</span><span class="ws-ditem-desc">Owns measurement throughout</span></div><div class="ws-ditem"><span class="ws-ditem-title">Deliver training</span><span class="ws-ditem-desc">Content built for sales reps, not IT teams</span></div><div class="ws-ditem hl"><span class="ws-ditem-title">Build the scale case</span><span class="ws-ditem-desc">Turn pilot results into Wave 2 funding case</span></div></div></div>
+          </div>
+        </div>
+        <div class="ws-block b4" onclick="toggleWS(this)">
+          <div class="ws-head"><div class="ws-head-left"><div class="ws-num">WS 4</div><div class="ws-title">⚙️ Governance & Rules of Engagement</div><div class="ws-desc">Define who owns what, how decisions get made, and how markets activate.</div></div><div class="ws-toggle">▼</div></div>
+          <div class="ws-detail">
+            <div class="ws-dcol"><div class="ws-dcol-head">What we do</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Define who decides what</span><span class="ws-ditem-desc">Clear ownership across Global, Regional, Market</span></div><div class="ws-ditem"><span class="ws-ditem-title">Set activation rules</span><span class="ws-ditem-desc">Each market knows what to do before launch</span></div><div class="ws-ditem"><span class="ws-ditem-title">Embed into BAU</span><span class="ws-ditem-desc">Governance becomes how NP operates</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">What gets built</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">📘 Market activation playbook</span><span class="ws-ditem-desc">Step-by-step guide for any market going live</span></div><div class="ws-ditem"><span class="ws-ditem-title">✅ Scaling gate criteria</span><span class="ws-ditem-desc">Checklist a pilot must pass before expanding</span></div><div class="ws-ditem"><span class="ws-ditem-title">📅 Decision-making rhythm</span><span class="ws-ditem-desc">Monthly forums, quarterly reviews</span></div></div></div>
+            <div class="ws-dcol"><div class="ws-dcol-head">Accenture's role</div><div class="ws-ditems"><div class="ws-ditem"><span class="ws-ditem-title">Facilitate workshops</span><span class="ws-ditem-desc">Get Global, Regional &amp; Market aligned</span></div><div class="ws-ditem"><span class="ws-ditem-title">Write the playbooks</span><span class="ws-ditem-desc">Rules of engagement, documented and ready</span></div><div class="ws-ditem hl"><span class="ws-ditem-title">Run the first forums</span><span class="ws-ditem-desc">Chair first 2–3 sessions to set the rhythm</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. TIMELINE -->
+    <div class="slide s-center" data-label="12-Month Plan">
+      <div class="slide-tag">Indicative Plan</div>
+      <div class="big dark" style="margin-bottom:28px;font-size:clamp(26px,3.2vw,40px);">Fast start. Real results. <em>No big bang.</em></div>
+      <div class="tl-grid">
+        <div class="tl-ph p1"><div class="tl-name">Mobilize</div><div class="tl-period">Months 1–3</div><div class="tl-item"><div class="tl-iname">🏛️ Governance live</div><div class="tl-idesc">Decision rights agreed, forums set up</div></div><div class="tl-item"><div class="tl-iname">💼 Blueprints built</div><div class="tl-idesc">Business case ready per Wave 1 initiative</div></div><div class="tl-item"><div class="tl-iname">🔍 Markets assessed</div><div class="tl-idesc">Right markets confirmed for Wave 1</div></div></div>
+        <div class="tl-ph p2"><div class="tl-name">Execute</div><div class="tl-period">Months 4–9</div><div class="tl-item"><div class="tl-iname">⚡ Pilots running</div><div class="tl-idesc">Wave 1 initiatives live in pilot markets</div></div><div class="tl-item"><div class="tl-iname">🎓 Teams trained</div><div class="tl-idesc">Sales Academy open, champions active</div></div><div class="tl-item"><div class="tl-iname">📈 Results tracked</div><div class="tl-idesc">Monthly updates showing what's working</div></div></div>
+        <div class="tl-ph p3"><div class="tl-name">Scale</div><div class="tl-period">Months 10–12+</div><div class="tl-item"><div class="tl-iname">✅ Gate cleared</div><div class="tl-idesc">Pilots hit targets, funding approved</div></div><div class="tl-item"><div class="tl-iname">🌐 Rollout begins</div><div class="tl-idesc">Wave 1 expanding to more markets</div></div><div class="tl-item"><div class="tl-iname">📋 Wave 2 scoped</div><div class="tl-idesc">Next initiatives ready for approval</div></div></div>
+      </div>
+    </div>
+
+    <!-- 9. WHY ACCENTURE -->
+    <div class="slide s-center" data-label="Why Accenture">
+      <div class="slide-tag">Why Accenture</div>
+      <div class="big dark" style="margin-bottom:24px;font-size:clamp(26px,3.2vw,40px);">We're already in the room.<br><em>We just need the green light.</em></div>
+      <div class="acn-cards">
+        <div class="acn-card"><div class="acn-icon">🤝</div><div class="acn-title">We know the people and the plan</div><div class="acn-desc">We built the strategy, shaped the portfolio, and earned the trust of the teams. No learning curve — we start fast.</div></div>
+        <div class="acn-card c2"><div class="acn-icon">🔥</div><div class="acn-title">The window is now</div><div class="acn-desc">Markets and commercial teams are ready. That energy is rare — the risk isn't moving too fast, it's losing the moment.</div></div>
+        <div class="acn-card c3"><div class="acn-icon">⚡</div><div class="acn-title">Bringing capacity to match the ambition</div><div class="acn-desc">We work alongside the NP team — adding capacity and expertise to turn shared ambition into shared results.</div></div>
+      </div>
+      <div class="acn-footer"><div class="acn-footer-icon">☕</div><div class="acn-footer-text">We see Phase 2 as a true partnership. Accenture brings the capacity and specialist expertise; the NP team brings the business knowledge, relationships, and accountability. Together, we make it happen.</div></div>
+    </div>
+
+    <!-- 10. THE ASK — MEETINGS -->
+    <div class="slide s-center" data-label="The Ask">
+      <div class="slide-tag">The Ask</div>
+      <div class="big dark" style="margin-bottom:22px;font-size:clamp(26px,3vw,38px);">Three conversations. <em>One green light.</em></div>
+      <div class="meet-list">
+        <div class="meet gold"><div class="meet-top"><div class="meet-who"><span class="meet-icon">👥</span><div><div class="meet-title">EDT Leadership & Global IT</div><div class="meet-subtitle">Strategy & technical alignment</div></div></div><div class="meet-name">Chris W · Tiago</div></div><div class="meet-body">Confirm Phase 2 scope, Accenture vs IBM CRM split, and Global IT vs market ownership on the US pilot.</div><div class="meet-q"><strong>Your input:</strong> Should we schedule this now? Anything specific to address?</div></div>
+        <div class="meet"><div class="meet-top"><div class="meet-who"><span class="meet-icon">💰</span><div><div class="meet-title">SBU Head — Funding Decision</div><div class="meet-subtitle">Investment sign-off for Phase 2</div></div></div><div class="meet-name">David R</div></div><div class="meet-body">Present the business case and get the funding decision to mobilise Phase 2.</div><div class="meet-q"><strong>Your input:</strong> What level of detail will David need? Any sensitivities?</div></div>
+        <div class="meet gray"><div class="meet-top"><div class="meet-who"><span class="meet-icon">🔗</span><div><div class="meet-title">Nestlé EDT — Generating Demand Sync</div><div class="meet-subtitle">Alignment with Retail & broader EDT agenda</div></div></div><div class="meet-name">Hans</div></div><div class="meet-body">Sync NP's transformation with the Generating Demand and Retail part of EDT — avoid duplication, find shared ground.</div><div class="meet-q"><strong>Your input:</strong> How much context does Hans have? What's the right framing?</div></div>
+      </div>
+    </div>
+
+    <!-- 11. PRE-MEETING ASKS -->
+    <div class="slide s-center" data-label="Before the Meetings">
+      <div class="slide-tag">And before those meetings</div>
+      <div class="big dark" style="margin-bottom:24px;font-size:clamp(24px,3vw,38px);">Four things to align on <em>now</em></div>
+      <div class="pre-grid">
+        <div class="pre"><div class="pre-icon">✅</div><div><div class="pre-title">Confirm Wave 1 scope</div><div class="pre-desc">Agree which initiatives and markets go first</div></div></div>
+        <div class="pre"><div class="pre-icon">⚙️</div><div><div class="pre-title">Activate governance</div><div class="pre-desc">Launch the first design forum and get decisions moving</div></div></div>
+        <div class="pre"><div class="pre-icon">🚀</div><div><div class="pre-title">Start Phase 2</div><div class="pre-desc">Confirm Accenture's role and mobilise the team</div></div></div>
+        <div class="pre"><div class="pre-icon">🗄️</div><div><div class="pre-title">Clarify CRM scope</div><div class="pre-desc">Resolve Accenture vs IBM and Global IT vs market ownership</div></div></div>
+      </div>
+    </div>
+
+    <!-- 12. CLOSING -->
+    <div class="slide s-closing" data-label="Closing">
+      <div class="cover-arc a1"></div><div class="cover-arc a2"></div>
+      <span class="deco d1">☕</span><span class="deco d2">👨‍🍳</span>
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:40px;padding:0 60px;padding-bottom:56px;">
+        <div class="quote">"The CRM tells us <em>who</em> the customers are.<br>The initiatives tell us <em>what to do</em> with them.<br>You need both — and this time, built together."</div>
+        <div class="logos-row" style="margin-bottom:0;">
+          <div class="logo-np"><svg width="28" height="28" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="17" stroke="white" stroke-width="2.5"/><path d="M20 4 A16 16 0 0 1 36 20" stroke="#E8B84B" stroke-width="3.5" stroke-linecap="round" fill="none"/><text x="11" y="26" font-family="Arial" font-weight="900" font-size="16" fill="white">N</text></svg><div class="logo-np-text"><span class="logo-np-nestle">Nestlé</span><span class="logo-np-pro">Professional</span></div></div>
+          <span class="logo-sep">×</span>
+          <div class="logo-acn"><svg width="14" height="18" viewBox="0 0 16 20" fill="none"><path d="M2 2L14 10L2 18" stroke="#C84BFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="acn-word">accenture</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /deck -->
+
+  <!-- BOTTOM NAV -->
+  <div class="nav">
+    <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← Prev</button>
+    <div class="nav-label" id="navLabel"></div>
+    <button class="nav-btn" id="nextBtn" onclick="go(1)">Next →</button>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const sideNav = document.getElementById('sidenav');
+  const progress = document.getElementById('progress');
+  const navLabel = document.getElementById('navLabel');
+  let cur = 0;
+
+  // Build side nav with visible labels
+  slides.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'sn-item' + (i===0?' active':'');
+    item.innerHTML = `<div class="sn-dot"></div><span class="sn-label">${s.dataset.label||''}</span>`;
+    item.onclick = () => goTo(i);
+    sideNav.appendChild(item);
+  });
+
+  function goTo(n) {
+    document.querySelectorAll('.sn-item')[cur].classList.remove('active');
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, slides.length-1));
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.sn-item')[cur].classList.add('active');
+    navLabel.textContent = slides[cur].dataset.label || '';
+    progress.style.width = ((cur+1)/slides.length*100)+'%';
+    document.getElementById('prevBtn').disabled = cur===0;
+    document.getElementById('nextBtn').disabled = cur===slides.length-1;
+  }
+
+  function go(d){ goTo(cur+d); }
+
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+  });
+
+  function toggleCRM(btn) {
+    const el = document.getElementById('crm-expand');
+    const arrow = document.getElementById('crm-toggle-arrow');
+    const open = el.style.display === 'block';
+    el.style.display = open ? 'none' : 'block';
+    arrow.textContent = open ? '↓ expand' : '↑ collapse';
+  }
+  function toggleWS(el){
+    const wasOpen = el.classList.contains('open');
+    document.querySelectorAll('.ws-block.open').forEach(b=>b.classList.remove('open'));
+    if(!wasOpen) el.classList.add('open');
+  }
+
+  goTo(0);
+</script>
+</body>
+</html>
